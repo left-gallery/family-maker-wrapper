@@ -10,4 +10,8 @@ Solution: create a new contract to wrap the old one, and mint all remaining toke
 
 ## How does the wrapper works
 
+- It wraps the original family maker token.
+- It is a valid ERC-721 token.
 - Transfer ownership to 0x0 to stop minting.
+
+MIT License
