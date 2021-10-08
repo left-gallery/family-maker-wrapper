@@ -21,7 +21,7 @@ contract FamilyMakerWrapper is ERC721, Ownable {
      *
      */
     constructor(address _familyMakerAddr)
-        ERC721("left gallery familymaker", "lgft")
+        ERC721("left gallery familymaker", "lgfm")
     {
         familyMaker = IFamilyMaker(_familyMakerAddr);
     }
