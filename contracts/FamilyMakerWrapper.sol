@@ -40,15 +40,16 @@ contract FamilyMakerWrapper is ERC721, Ownable {
     }
 
     /**
-     * @dev Custom {IERC721Receiver-onERC721Received} method that can **wrap**
-     * tokens from the original *family maker* contract. The method:
+     * @dev Custom {IERC721Receiver-onERC721Received} method to **wrap** tokens
+     * from the original *family maker* contract. The method:
      *
-     * - Checks if the sender is the original contract.
-     * - If so, it mints a new token in the current contract with the same
-     *   `tokenId`.
+     * 1. Checks if the sender is the original contract.
+     * 2. If so, it mints a new token in the current contract with the same
+     *    `tokenId`.
      *
      * Now the token is wrapped. The old token is hold by this contract and can
-     * be released by transfering the new one to the original contract.
+     * be released by transferring it to the original contract (see
+     * {FamilyMakerWrapper-_transfer}).
      */
     function onERC721Received(
         address from,
@@ -61,8 +62,8 @@ contract FamilyMakerWrapper is ERC721, Ownable {
     }
 
     /**
-     * @dev Custom {ERC721-_transfer} method. If the token receiver is the
-     * original *family token* contract, then ignore the `ERC721Receiver` check.
+     * @dev Custom {ERC721-_safeTransfer} method. If the token receiver is the
+     * original *family token* contract it ignores the `ERC721Receiver` check.
      */
     function _safeTransfer(
         address from,
@@ -84,8 +85,8 @@ contract FamilyMakerWrapper is ERC721, Ownable {
      * token is transferred back to the original *family token* contract, the
      * method:
      *
-     * - Burns the token in the current contract.
-     * - TransferS the token in the original contract to the receiver address.
+     * 1. Burns the token in the current contract.
+     * 2. Transfers the token in the original contract to the receiver address.
      */
     function _transfer(
         address from,
