@@ -1,23 +1,27 @@
 import { task } from "hardhat/config";
-import { writeFile } from "fs/promises";
+import { FamilyMakerWrapper__factory } from "../typechain";
+import { mergeNetworkArtifact } from "./utils";
 
-task("deploy", "Deploy Storage", async (_, hre) => {
-  console.log("Deploy contract Storage");
-  const storageFactory = await hre.ethers.getContractFactory("Storage");
+task("deploy", "Deploy FamilyMakerWrapper")
+  .addParam("legacyAddress", "Address of the family maker contract to wrap")
+  .setAction(async ({ legacyAddress }, hre) => {
+    console.log("Deploy FamilyMakerWrapper, legacy contract:", legacyAddress);
+    const wrapperFactory = (await hre.ethers.getContractFactory(
+      "FamilyMakerWrapper"
+    )) as FamilyMakerWrapper__factory;
 
-  const storageContract = await storageFactory.deploy();
-  console.log("  Address", storageContract.address);
-  const receipt = await storageContract.deployed();
-  console.log("  Receipt", receipt.deployTransaction.hash);
+    const wrapperContract = await wrapperFactory.deploy(legacyAddress);
+    console.log("  Address", wrapperContract.address);
+    const receipt = await wrapperContract.deployed();
+    console.log("  Receipt", receipt.deployTransaction.hash);
 
-  const { chainId } = await hre.ethers.provider.getNetwork();
+    const { chainId } = await hre.ethers.provider.getNetwork();
 
-  const config = {
-    [chainId]: {
-      Storage: storageContract.address,
-    },
-  };
+    const config = {
+      [chainId]: {
+        FamilyMakerWrapper: wrapperContract.address,
+      },
+    };
 
-  console.log("Configuration file in ./artifacts/network.json");
-  await writeFile("./artifacts/network.json", JSON.stringify(config, null, 2));
-});
+    await mergeNetworkArtifact(config);
+  });
