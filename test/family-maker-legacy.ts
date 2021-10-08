@@ -2,7 +2,6 @@ import { ethers } from "hardhat";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { solidity } from "ethereum-waffle";
-import { FamilyMakerWrapper__factory, FamilyMakerWrapper } from "../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployLegacy } from "./legacy";
 import { Contract } from "@ethersproject/contracts";

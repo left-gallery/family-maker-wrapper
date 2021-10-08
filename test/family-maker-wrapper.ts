@@ -129,6 +129,36 @@ describe("Family Maker Wrapper", () => {
     expect(await wrapper.ownerOf(13)).equal(dan.address);
   });
 
+  it("respects the max supply", async () => {
+    // Note: the legacy contract already has tokens 1 to 10.
+    expect(await legacy.totalSupply()).equal(10);
+    await expect(aliceWrapper.mintAll(alice.address, 88)).to.revertedWith(
+      "FMW: amount exceedes supply"
+    );
+    expect(await legacy.totalSupply()).equal(10);
+    await expect(aliceWrapper.mintAll(alice.address, 78));
+    expect(await legacy.totalSupply()).equal(88);
+    await expect(aliceWrapper.mintAll(alice.address, 1)).to.revertedWith(
+      "FMW: amount exceedes supply"
+    );
+    expect(await legacy.totalSupply()).equal(88);
+  });
+
+  it("returns the right URI", async () => {
+    // Note: the legacy contract already has tokens 1 to 10.
+    await aliceWrapper.mintAll(alice.address, 3);
+    expect(await wrapper.tokenURI(10)).equal("https://left.gallery/10");
+    expect(await wrapper.tokenURI(11)).equal(
+      "https://left.gallery/tokens/metadata/family-maker/11"
+    );
+    expect(await wrapper.tokenURI(12)).equal(
+      "https://left.gallery/tokens/metadata/family-maker/12"
+    );
+    expect(await wrapper.tokenURI(13)).equal(
+      "https://left.gallery/tokens/metadata/family-maker/13"
+    );
+  });
+
   it("wraps a token on transfer", async () => {
     // Alice safeTransferFrom her token from the legacy contract to the wrapper
     // contract. The wrapper contract wraps the token.
