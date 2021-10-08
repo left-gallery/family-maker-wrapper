@@ -80,20 +80,50 @@ describe("Family Maker Wrapper", () => {
     erinWrapper = wrapper.connect(erin);
 
     // Mint some tokens in the legacy contract for Alice.
-    await legacy.createWork(alice.address, "https://left.gallery/1");
-    await legacy.createWork(alice.address, "https://left.gallery/2");
-    await legacy.createWork(alice.address, "https://left.gallery/3");
-    await legacy.createWork(alice.address, "https://left.gallery/4");
+    await legacy.createWork(
+      alice.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/1"
+    );
+    await legacy.createWork(
+      alice.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/2"
+    );
+    await legacy.createWork(
+      alice.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/3"
+    );
+    await legacy.createWork(
+      alice.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/4"
+    );
 
     // Mint some tokens in the legacy contract for Bob.
-    await legacy.createWork(bob.address, "https://left.gallery/5");
-    await legacy.createWork(bob.address, "https://left.gallery/6");
+    await legacy.createWork(
+      bob.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/5"
+    );
+    await legacy.createWork(
+      bob.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/6"
+    );
 
     // Mint some tokens in the legacy contract for Carol.
-    await legacy.createWork(carol.address, "https://left.gallery/7");
-    await legacy.createWork(carol.address, "https://left.gallery/8");
-    await legacy.createWork(carol.address, "https://left.gallery/9");
-    await legacy.createWork(carol.address, "https://left.gallery/10");
+    await legacy.createWork(
+      carol.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/7"
+    );
+    await legacy.createWork(
+      carol.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/8"
+    );
+    await legacy.createWork(
+      carol.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/9"
+    );
+    await legacy.createWork(
+      carol.address,
+      "https://left.gallery/tokens/metadata/family-maker-legacy/10"
+    );
 
     // At this point Alice gives full control to the wrapper over the legacy
     // contract. This allows the wrapper to mint legacy tokens.
@@ -133,13 +163,13 @@ describe("Family Maker Wrapper", () => {
     // Note: the legacy contract already has tokens 1 to 10.
     expect(await legacy.totalSupply()).equal(10);
     await expect(aliceWrapper.mintAll(alice.address, 88)).to.revertedWith(
-      "FMW: amount exceedes supply"
+      "FMW: amount exceeds supply"
     );
     expect(await legacy.totalSupply()).equal(10);
-    await expect(aliceWrapper.mintAll(alice.address, 78));
+    expect(await aliceWrapper.mintAll(alice.address, 78));
     expect(await legacy.totalSupply()).equal(88);
     await expect(aliceWrapper.mintAll(alice.address, 1)).to.revertedWith(
-      "FMW: amount exceedes supply"
+      "FMW: amount exceeds supply"
     );
     expect(await legacy.totalSupply()).equal(88);
   });
@@ -147,7 +177,9 @@ describe("Family Maker Wrapper", () => {
   it("returns the right URI", async () => {
     // Note: the legacy contract already has tokens 1 to 10.
     await aliceWrapper.mintAll(alice.address, 3);
-    expect(await wrapper.tokenURI(10)).equal("https://left.gallery/10");
+    expect(await wrapper.tokenURI(10)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/10"
+    );
     expect(await wrapper.tokenURI(11)).equal(
       "https://left.gallery/tokens/metadata/family-maker/11"
     );

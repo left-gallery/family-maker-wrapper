@@ -114,7 +114,7 @@ contract FamilyMakerWrapper is ERC721, Ownable {
      */
     function mintAll(address to, uint8 amount) external onlyOwner {
         uint256 totalSupply = familyMaker.totalSupply();
-        require(totalSupply + amount <= SUPPLY, "FMW: amount exceedes supply");
+        require(totalSupply + amount <= SUPPLY, "FMW: amount exceeds supply");
         for (uint8 i = 0; i < amount; i++) {
             uint256 tokenId = totalSupply + i + 1;
             familyMaker.createWork(
