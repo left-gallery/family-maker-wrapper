@@ -12,161 +12,210 @@ chai.use(solidity);
 chai.use(chaiAsPromised);
 const { expect } = chai;
 
-describe("Family Maker", () => {
+describe("Family Maker Wrapper", () => {
+  // Contracts
   let legacy: Contract;
   let wrapper: FamilyMakerWrapper;
-  let impostor: Contract;
+  let notLegacy: Contract;
 
-  let alice: SignerWithAddress, bob: SignerWithAddress;
+  // Alice is the owner of everything
+  let alice: SignerWithAddress;
   let aliceLegacy: Contract;
-  let aliceImpostor: Contract;
+  let aliceNotLegacy: Contract;
   let aliceWrapper: FamilyMakerWrapper;
+
+  // Bob is a collector
+  let bob: SignerWithAddress;
   let bobLegacy: Contract;
   let bobWrapper: FamilyMakerWrapper;
 
-  beforeEach(async () => {
-    [alice, bob] = await ethers.getSigners();
-    legacy = await deployLegacy(alice);
-    impostor = await deployLegacy(alice);
+  // Carol is a collector
+  let carol: SignerWithAddress;
+  let carolLegacy: Contract;
+  let carolWrapper: FamilyMakerWrapper;
 
+  // Dan is a collector
+  let dan: SignerWithAddress;
+  let danLegacy: Contract;
+  let danWrapper: FamilyMakerWrapper;
+
+  // Erin is a collector
+  let erin: SignerWithAddress;
+  let erinLegacy: Contract;
+  let erinWrapper: FamilyMakerWrapper;
+
+  beforeEach(async () => {
+    [alice, bob, carol, dan, erin] = await ethers.getSigners();
+
+    // Deploy the reference family maker contract from Alice's account
+    legacy = await deployLegacy(alice);
+
+    // Deploy another family maker contract from Alice's account. This is used
+    // to simulate another contract that will try to impersonate the original
+    // family maker contract
+    notLegacy = await deployLegacy(alice);
+
+    // Deploy the wrapper contract from Alice's account
     const FamilyMakerWrapperFactory = (await ethers.getContractFactory(
       "FamilyMakerWrapper",
       alice
     )) as FamilyMakerWrapper__factory;
-
+    // Pass the address of the legacy family maker contract to the wrapper
     wrapper = await FamilyMakerWrapperFactory.deploy(legacy.address);
     await wrapper.deployed();
 
+    // Connect all accounts so it's easier to use them later.
     aliceLegacy = legacy.connect(alice);
-    aliceImpostor = impostor.connect(alice);
-    aliceWrapper = wrapper.connect(alice);
-
     bobLegacy = legacy.connect(bob);
+    carolLegacy = legacy.connect(carol);
+    danLegacy = legacy.connect(dan);
+    erinLegacy = legacy.connect(erin);
+
+    aliceNotLegacy = notLegacy.connect(alice);
+
+    aliceWrapper = wrapper.connect(alice);
     bobWrapper = wrapper.connect(bob);
+    carolWrapper = wrapper.connect(carol);
+    danWrapper = wrapper.connect(dan);
+    erinWrapper = wrapper.connect(erin);
+
+    // Mint some tokens in the legacy contract for Alice.
+    await legacy.createWork(alice.address, "https://left.gallery/1");
+    await legacy.createWork(alice.address, "https://left.gallery/2");
+    await legacy.createWork(alice.address, "https://left.gallery/3");
+    await legacy.createWork(alice.address, "https://left.gallery/4");
+
+    // Mint some tokens in the legacy contract for Bob.
+    await legacy.createWork(bob.address, "https://left.gallery/5");
+    await legacy.createWork(bob.address, "https://left.gallery/6");
+
+    // Mint some tokens in the legacy contract for Carol.
+    await legacy.createWork(carol.address, "https://left.gallery/7");
+    await legacy.createWork(carol.address, "https://left.gallery/8");
+    await legacy.createWork(carol.address, "https://left.gallery/9");
+    await legacy.createWork(carol.address, "https://left.gallery/10");
+
+    // At this point Alice gives full control to the wrapper over the legacy
+    // contract. This allows the wrapper to mint legacy tokens.
+    await aliceLegacy.transferOwnership(wrapper.address);
   });
 
-  describe("Legacy", async () => {
-    it("is deployed", async () => {
-      expect(legacy.address).not.equal(AddressZero);
-    });
+  /**
+   * Mint tokens in the wrapper contract. The wrapper mints them in the legacy
+   * contract and keeps custody of them.
+   */
+  it("mints and wraps", async () => {
+    // Note: the legacy contract already has tokens 1 to 10.
+    await expect(aliceWrapper.mintAll(dan.address, 3))
+      //.to.emit(legacy, "Transfer")
+      //.withArgs(AddressZero, wrapper.address, 11)
+      //.to.emit(legacy, "Transfer")
+      //.withArgs(AddressZero, wrapper.address, 12)
+      //.to.emit(legacy, "Transfer")
+      //.withArgs(AddressZero, wrapper.address, 13)
+      .to.emit(wrapper, "Transfer")
+      .withArgs(AddressZero, dan.address, 11)
+      .to.emit(wrapper, "Transfer")
+      .withArgs(AddressZero, dan.address, 12)
+      .to.emit(wrapper, "Transfer")
+      .withArgs(AddressZero, dan.address, 13);
 
-    it("has the correct metadata", async () => {
-      expect(await legacy.name()).equal("left gallery token");
-      expect(await legacy.symbol()).equal("lgt");
-    });
-
-    it("creates works", async () => {
-      expect(await legacy.totalSupply()).equal(0);
-      await expect(legacy.createWork(bob.address, "https://left.gallery/1"))
-        .to.emit(legacy, "Transfer")
-        .withArgs(AddressZero, bob.address, 1);
-      expect(await legacy.totalSupply()).equal(1);
-    });
+    // Legacy tokens are hold by the wrapper. Wrapped tokens are hold by collectors.
+    expect(await legacy.ownerOf(11)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(11)).equal(dan.address);
+    expect(await legacy.ownerOf(12)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(12)).equal(dan.address);
+    expect(await legacy.ownerOf(13)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(13)).equal(dan.address);
   });
 
-  describe("Wrapper", async () => {
-    beforeEach(async () => {
-      // Premint some tokens in the legacy contract
-      for (let i = 0; i < 10; i++) {
-        await legacy.createWork(alice.address, `https://left.gallery/${i + 1}`);
-      }
-      // Give ownership to the wrapper contract to allow it to mint new tokens.
-      await aliceLegacy.transferOwnership(wrapper.address);
-      //await aliceLegacy.setApprovalForAll(wrapper.address, true);
-    });
-
-    it("wraps a token transfer", async () => {
-      await expect(
-        aliceLegacy["safeTransferFrom(address,address,uint256)"](
-          alice.address,
-          wrapper.address,
-          1
-        )
-      )
-        .to.emit(legacy, "Transfer")
-        .withArgs(alice.address, wrapper.address, 1);
-      /*
-        .to.emit(wrapper, "Transfer")
-        .withArgs(AddressZero, alice.address, 1);
-        */
-
-      expect(await legacy.ownerOf(1)).equal(wrapper.address);
-      expect(await wrapper.ownerOf(1)).equal(alice.address);
-    });
-
-    it("unwraps a token on transfer to legacy contract", async () => {
-      // Check precondition
-      expect(await legacy.ownerOf(1)).equal(alice.address);
-
-      // Wrap the token
-      await aliceLegacy["safeTransferFrom(address,address,uint256)"](
+  it("wraps a token on transfer", async () => {
+    // Alice safeTransferFrom her token from the legacy contract to the wrapper
+    // contract. The wrapper contract wraps the token.
+    expect(await legacy.ownerOf(1)).equal(alice.address);
+    await expect(
+      aliceLegacy["safeTransferFrom(address,address,uint256)"](
         alice.address,
         wrapper.address,
         1
-      );
+      )
+    )
+      .to.emit(legacy, "Transfer")
+      .withArgs(alice.address, wrapper.address, 1);
+    expect(await legacy.ownerOf(1)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(1)).equal(alice.address);
 
-      // Check Wrapping
-      expect(await legacy.ownerOf(1)).equal(wrapper.address);
-      expect(await wrapper.ownerOf(1)).equal(alice.address);
+    // Bob safeTransferFrom his token from the legacy contract to the wrapper
+    // contract. The wrapper contract wraps the token.
+    expect(await legacy.ownerOf(5)).equal(bob.address);
+    await expect(
+      bobLegacy["safeTransferFrom(address,address,uint256)"](
+        bob.address,
+        wrapper.address,
+        5
+      )
+    )
+      .to.emit(legacy, "Transfer")
+      .withArgs(bob.address, wrapper.address, 5);
+    expect(await legacy.ownerOf(5)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(5)).equal(bob.address);
 
-      await aliceWrapper["safeTransferFrom(address,address,uint256)"](
+    // Carol approve-s her token to Erin. Erin transfers the token to the wrapper contract.
+    expect(await legacy.ownerOf(7)).equal(carol.address);
+    await carolLegacy.approve(erin.address, 7);
+    await expect(
+      erinLegacy["safeTransferFrom(address,address,uint256)"](
+        carol.address,
+        wrapper.address,
+        7
+      )
+    )
+      .to.emit(legacy, "Transfer")
+      .withArgs(carol.address, wrapper.address, 7);
+    expect(await legacy.ownerOf(7)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(7)).equal(carol.address);
+  });
+
+  it("unwraps a token on transfer to legacy contract", async () => {
+    // Check precondition
+    expect(await legacy.ownerOf(1)).equal(alice.address);
+
+    // Wrap the token
+    await aliceLegacy["safeTransferFrom(address,address,uint256)"](
+      alice.address,
+      wrapper.address,
+      1
+    );
+
+    // Check Wrapping
+    expect(await legacy.ownerOf(1)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(1)).equal(alice.address);
+
+    await aliceWrapper["safeTransferFrom(address,address,uint256)"](
+      alice.address,
+      legacy.address,
+      1
+    );
+    //await aliceWrapper.transferFrom(alice.address, legacy.address, 1);
+  });
+
+  it("reverts on transfer from any other contract", async () => {
+    await aliceNotLegacy.createWork(alice.address, `https://left.gallery/1`);
+    await expect(
+      aliceNotLegacy["safeTransferFrom(address,address,uint256)"](
         alice.address,
-        legacy.address,
+        wrapper.address,
         1
-      );
-      //await aliceWrapper.transferFrom(alice.address, legacy.address, 1);
-    });
+      )
+    ).to.be.revertedWith("FMW: Invalid contract");
+  });
 
-    it("reverts on transfer from a non legacy contract", async () => {
-      await aliceImpostor.createWork(alice.address, `https://left.gallery/1`);
-      await expect(
-        aliceImpostor["safeTransferFrom(address,address,uint256)"](
-          alice.address,
-          wrapper.address,
-          1
-        )
-      ).to.be.revertedWith("FMW: Invalid contract");
-    });
-
-    it("mints and wraps", async () => {
-      // Note: the legacy contract already has tokens 1 to 10.
-      /*
-      const r = await aliceWrapper.mintAll(alice.address, 3);
-      const rr = await r.wait(1);
-      const events = rr.events!;
-      console.log(events);
-      for (let e of events) {
-        console.log(e.args);
-      }
-      console.log("legacy", legacy.address);
-      console.log("wrapper", wrapper.address);
+  it("allows to transfer", async () => {
+    // Note: the legacy contract already has tokens 1 to 10.
+    /*
+    await expect(aliceWrapper.transferFrom(alice.address, bob.address, 1))
+      .to.emit(legacy, "Transfer")
+      .withArgs(alice.address, bob.address, 1);
       */
-      await expect(aliceWrapper.mintAll(alice.address, 3))
-        //.to.emit(legacy, "Transfer")
-        //.withArgs(AddressZero, wrapper.address, 11)
-        //.to.emit(legacy, "Transfer")
-        //.withArgs(AddressZero, wrapper.address, 12)
-        //.to.emit(legacy, "Transfer")
-        //.withArgs(AddressZero, wrapper.address, 13)
-        .to.emit(wrapper, "Transfer")
-        .withArgs(AddressZero, alice.address, 11)
-        .to.emit(wrapper, "Transfer")
-        .withArgs(AddressZero, alice.address, 12)
-        .to.emit(wrapper, "Transfer")
-        .withArgs(AddressZero, alice.address, 13);
-      expect(await aliceLegacy.ownerOf(11)).equal(wrapper.address);
-      expect(await aliceWrapper.ownerOf(11)).equal(alice.address);
-      expect(await aliceLegacy.ownerOf(12)).equal(wrapper.address);
-      expect(await aliceWrapper.ownerOf(12)).equal(alice.address);
-      expect(await aliceLegacy.ownerOf(13)).equal(wrapper.address);
-      expect(await aliceWrapper.ownerOf(13)).equal(alice.address);
-    });
-
-    it("allows to transfer", async () => {
-      // Note: the legacy contract already has tokens 1 to 10.
-      await expect(aliceWrapper.transferFrom(alice.address, bob.address, 1))
-        .to.emit(legacy, "Transfer")
-        .withArgs(alice.address, bob.address, 1);
-    });
   });
 });
