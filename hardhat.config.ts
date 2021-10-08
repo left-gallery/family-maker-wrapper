@@ -3,6 +3,7 @@ dotEnvConfig();
 
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-etherscan";
 
 import "hardhat-gas-reporter";
 import { HardhatUserConfig } from "hardhat/types";

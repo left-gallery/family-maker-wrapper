@@ -1,17 +1,16 @@
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 
-const FILENAME = join(__dirname, "../artifacts/network.json");
-
-export async function mergeNetworkArtifact(data: any) {
+export async function mergeNetworkArtifact(chainId: number, data: any) {
+  const filename = join(__dirname, "../artifacts/", `${chainId}.json`);
   let stored = {};
   try {
-    stored = JSON.parse(await readFile(FILENAME, "utf8"));
+    stored = JSON.parse(await readFile(filename, "utf8"));
   } catch (e) {
     if ((e as any).code !== "ENOENT") {
       console.error(e);
       process.exit(1);
     }
   }
-  await writeFile(FILENAME, JSON.stringify({ ...stored, ...data }, null, 2));
+  await writeFile(filename, JSON.stringify({ ...stored, ...data }, null, 2));
 }

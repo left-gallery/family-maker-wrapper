@@ -15,3 +15,17 @@ Solution: create a new contract to wrap the old one, and mint all remaining toke
 - Transfer ownership to 0x0 to stop minting.
 
 MIT License
+
+## How to use it
+
+Example, deploy on Rinkeby:
+
+```
+npx hardhat --network rinkeby deploy-legacy
+# ...copy the legacy contract address
+
+npx hardhat --network rinkeby deploy --legacy-address <legacy-contract-address>
+# ...copy the wrapper contract address
+
+npx hardhat verify --network rinkeby <wrapper-contract-address> <legacy-contract-address>
+```

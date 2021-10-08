@@ -44,10 +44,8 @@ task("deploy-legacy", "Deploy FamilyMakerLegacy", async (_, hre) => {
   const { chainId } = await hre.ethers.provider.getNetwork();
 
   const config = {
-    [chainId]: {
-      FamilyMakerLegacy: contract.address,
-    },
+    FamilyMakerLegacy: contract.address,
   };
 
-  await mergeNetworkArtifact(config);
+  await mergeNetworkArtifact(chainId, config);
 });

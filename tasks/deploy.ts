@@ -18,10 +18,8 @@ task("deploy", "Deploy FamilyMakerWrapper")
     const { chainId } = await hre.ethers.provider.getNetwork();
 
     const config = {
-      [chainId]: {
-        FamilyMakerWrapper: wrapperContract.address,
-      },
+      FamilyMakerWrapper: wrapperContract.address,
     };
 
-    await mergeNetworkArtifact(config);
+    await mergeNetworkArtifact(chainId, config);
   });
