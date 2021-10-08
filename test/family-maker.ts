@@ -120,7 +120,7 @@ describe("Family Maker Wrapper", () => {
       .to.emit(wrapper, "Transfer")
       .withArgs(AddressZero, dan.address, 13);
 
-    // Legacy tokens are hold by the wrapper. Wrapped tokens are hold by collectors.
+    // Legacy tokens are owned by the wrapper. Wrapped tokens are owned by collectors.
     expect(await legacy.ownerOf(11)).equal(wrapper.address);
     expect(await wrapper.ownerOf(11)).equal(dan.address);
     expect(await legacy.ownerOf(12)).equal(wrapper.address);
@@ -145,8 +145,8 @@ describe("Family Maker Wrapper", () => {
     expect(await legacy.ownerOf(1)).equal(wrapper.address);
     expect(await wrapper.ownerOf(1)).equal(alice.address);
 
-    // Bob safeTransferFrom his token from the legacy contract to the wrapper
-    // contract. The wrapper contract wraps the token.
+    // Bob calls `safeTransferFrom` on his token to transfer it form the legacy
+    // contract to the wrapper contract. The wrapper contract wraps the token.
     expect(await legacy.ownerOf(5)).equal(bob.address);
     await expect(
       bobLegacy["safeTransferFrom(address,address,uint256)"](
@@ -160,7 +160,8 @@ describe("Family Maker Wrapper", () => {
     expect(await legacy.ownerOf(5)).equal(wrapper.address);
     expect(await wrapper.ownerOf(5)).equal(bob.address);
 
-    // Carol approve-s her token to Erin. Erin transfers the token to the wrapper contract.
+    // Carol calls `approve` on her token to allow Erin to transfer it. Erin
+    // transfers the token to the wrapper contract.
     expect(await legacy.ownerOf(7)).equal(carol.address);
     await carolLegacy.approve(erin.address, 7);
     await expect(
@@ -176,27 +177,68 @@ describe("Family Maker Wrapper", () => {
     expect(await wrapper.ownerOf(7)).equal(carol.address);
   });
 
-  it("unwraps a token on transfer to legacy contract", async () => {
-    // Check precondition
-    expect(await legacy.ownerOf(1)).equal(alice.address);
+  /**
+   * A wrapped token can be unwrapped sending it back to the legacy contract.
+   */
+  it("unwraps a token on safeTransferFrom to legacy contract", async () => {
+    // Carol has a token in the legacy contract
+    expect(await legacy.ownerOf(10)).equal(carol.address);
 
-    // Wrap the token
-    await aliceLegacy["safeTransferFrom(address,address,uint256)"](
-      alice.address,
+    // She wraps the token
+    await carolLegacy["safeTransferFrom(address,address,uint256)"](
+      carol.address,
       wrapper.address,
-      1
+      10
     );
 
-    // Check Wrapping
-    expect(await legacy.ownerOf(1)).equal(wrapper.address);
-    expect(await wrapper.ownerOf(1)).equal(alice.address);
+    // The legacy token is owned by the wrapper
+    expect(await legacy.ownerOf(10)).equal(wrapper.address);
+    // The wrapped token is owned by Carol
+    expect(await wrapper.ownerOf(10)).equal(carol.address);
 
-    await aliceWrapper["safeTransferFrom(address,address,uint256)"](
-      alice.address,
+    // Carol sends the wrapped token back to the legacy contract to unwrap it.
+    await carolWrapper["safeTransferFrom(address,address,uint256)"](
+      carol.address,
       legacy.address,
-      1
+      10
     );
-    //await aliceWrapper.transferFrom(alice.address, legacy.address, 1);
+
+    // The legacy token is owned by Carol
+    expect(await legacy.ownerOf(10)).equal(carol.address);
+    // The wrapped token doesn't exist anymore.
+    await expect(wrapper.ownerOf(10)).to.be.revertedWith(
+      "ERC721: owner query for nonexistent token"
+    );
+  });
+
+  /**
+   * A wrapped token can be unwrapped sending it back to the legacy contract.
+   */
+  it("unwraps a token on transferFrom to legacy contract", async () => {
+    // Carol has a token in the legacy contract
+    expect(await legacy.ownerOf(10)).equal(carol.address);
+
+    // She wraps the token
+    await carolLegacy["safeTransferFrom(address,address,uint256)"](
+      carol.address,
+      wrapper.address,
+      10
+    );
+
+    // The legacy token is owned by the wrapper
+    expect(await legacy.ownerOf(10)).equal(wrapper.address);
+    // The wrapped token is owned by Carol
+    expect(await wrapper.ownerOf(10)).equal(carol.address);
+
+    // Carol sends the wrapped token back to the legacy contract to unwrap it.
+    await carolWrapper.transferFrom(carol.address, legacy.address, 10);
+
+    // The legacy token is owned by Carol
+    expect(await legacy.ownerOf(10)).equal(carol.address);
+    // The wrapped token doesn't exist anymore.
+    await expect(wrapper.ownerOf(10)).to.be.revertedWith(
+      "ERC721: owner query for nonexistent token"
+    );
   });
 
   it("reverts on transfer from any other contract", async () => {

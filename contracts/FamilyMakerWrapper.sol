@@ -93,10 +93,11 @@ contract FamilyMakerWrapper is ERC721, Ownable {
         address to,
         uint256 tokenId
     ) internal override {
-        super._transfer(from, to, tokenId);
         if (to == address(familyMaker)) {
-            familyMaker.transferFrom(address(this), to, tokenId);
             _burn(tokenId);
+            familyMaker.transferFrom(address(this), from, tokenId);
+        } else {
+            super._transfer(from, to, tokenId);
         }
     }
 
