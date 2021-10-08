@@ -1,3 +1,4 @@
+solidity-compiler/soljson*
 deployments
 node_modules/
 cache/
