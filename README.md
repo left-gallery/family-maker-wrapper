@@ -8,14 +8,6 @@ Problem: the contract [is not indexed by OpenSea](https://opensea.io/assets?sear
 
 Solution: create a new contract to wrap the old one, and mint all remaining tokens.
 
-## How does the wrapper works
-
-- It wraps the original family maker token.
-- It is a valid ERC-721 token.
-- Transfer ownership to 0x0 to stop minting.
-
-MIT License
-
 ## How to use it
 
 Example, deploy on Rinkeby:
@@ -34,6 +26,6 @@ npx hardhat verify --network rinkeby <wrapper-contract-address> <legacy-contract
 
 - Legacy: deploy contract in Rinkeby at https://rinkeby.etherscan.io/address/0xA6A1342850c0493e1A528df189AB3C8f5c311F59
 - Wrapper: deploy contract in Rinkeby at https://rinkeby.etherscan.io/address/0x6796AFF016478feb7afdd698e413841cF2916821
-- Legacy: mint token 4 to 0x1979
+- Legacy: mint 4 tokens to 0x1979
 - Legacy: transfer ownership to Wrapper
 - Wrapper: mint/wrap tokens from 1 to 10 https://rinkeby.etherscan.io/tx/0x8d8e8a4a42c9356c1e1390a9e81e131e706a9b5dbcc0ea64aa06965430580a41
