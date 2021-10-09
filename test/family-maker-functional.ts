@@ -131,8 +131,8 @@ describe("Family Maker", () => {
     // contract. This allows the wrapper to mint legacy tokens.
     await aliceLegacy.transferOwnership(wrapper.address);
 
-    // Alice mints 2 new tokens
-    await aliceWrapper.mintAll(alice.address, 2);
+    // Alice wraps all tokens
+    await aliceWrapper.mintAll(alice.address, 1, 88);
 
     // Legacy tokens are owned by the wrapper. Wrapped tokens are owned by Alice.
     expect(await legacy.ownerOf(11)).equal(wrapper.address);
@@ -172,10 +172,8 @@ describe("Family Maker", () => {
 
     // Bob unwraps the token
     await bobWrapper.transferFrom(bob.address, legacy.address, 5);
-    await expect(wrapper.ownerOf(5)).to.be.revertedWith(
-      "ERC721: owner query for nonexistent token"
-    );
     expect(await legacy.ownerOf(5)).equal(bob.address);
+    expect(await wrapper.ownerOf(5)).equal(legacy.address);
 
     // Carol wraps all her tokens
     await carolLegacy["safeTransferFrom(address,address,uint256)"](
@@ -202,5 +200,9 @@ describe("Family Maker", () => {
     expect(await wrapper.ownerOf(8)).equal(carol.address);
     expect(await wrapper.ownerOf(9)).equal(carol.address);
     expect(await wrapper.ownerOf(10)).equal(carol.address);
+    expect(await legacy.ownerOf(7)).equal(wrapper.address);
+    expect(await legacy.ownerOf(8)).equal(wrapper.address);
+    expect(await legacy.ownerOf(9)).equal(wrapper.address);
+    expect(await legacy.ownerOf(10)).equal(wrapper.address);
   });
 });

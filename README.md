@@ -32,9 +32,8 @@ npx hardhat verify --network rinkeby <wrapper-contract-address> <legacy-contract
 
 ## Rinkeby testing logs
 
-- Legacy: deploy contract in Rinkeby at 0x666d599ff1f5fceB8A278825538Df1F7F5C72621
-- Wrapper: deploy contract in Rinkeby at 0xD8940552648071060294EE36aaF969D7F06287D1
-- Legacy: mint token 1 to 0x1979
-- Legacy: transfer token 1 to Wrapper https://rinkeby.etherscan.io/tx/0xaba5747834ee3f87c4ae86197cf74365be5016ae0000a670c905980d6d51267f
-- Collection appears in opensea https://testnets.opensea.io/collection/left-gallery-familymaker
-- Token is indexed by opensea https://testnets.opensea.io/assets/0xd8940552648071060294ee36aaf969d7f06287d1/1
+- Legacy: deploy contract in Rinkeby at https://rinkeby.etherscan.io/address/0xA6A1342850c0493e1A528df189AB3C8f5c311F59
+- Wrapper: deploy contract in Rinkeby at https://rinkeby.etherscan.io/address/0x6796AFF016478feb7afdd698e413841cF2916821
+- Legacy: mint token 4 to 0x1979
+- Legacy: transfer ownership to Wrapper
+- Wrapper: mint/wrap tokens from 1 to 10 https://rinkeby.etherscan.io/tx/0x8d8e8a4a42c9356c1e1390a9e81e131e706a9b5dbcc0ea64aa06965430580a41
