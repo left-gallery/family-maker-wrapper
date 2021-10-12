@@ -134,7 +134,67 @@ describe("Family Maker", () => {
     // Alice wraps all tokens
     await aliceWrapper.mintAll(alice.address, 1, 88);
 
-    // Legacy tokens are owned by the wrapper. Wrapped tokens are owned by Alice.
+    // Legacy tokens are owned by the wrapper. New tokens are owned by Alice.
+    expect(await legacy.ownerOf(1)).equal(alice.address);
+    expect(await wrapper.ownerOf(1)).equal(legacy.address);
+    expect(await wrapper.tokenURI(1)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/1"
+    );
+
+    expect(await legacy.ownerOf(2)).equal(alice.address);
+    expect(await wrapper.ownerOf(2)).equal(legacy.address);
+    expect(await wrapper.tokenURI(2)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/2"
+    );
+
+    expect(await legacy.ownerOf(3)).equal(alice.address);
+    expect(await wrapper.ownerOf(3)).equal(legacy.address);
+    expect(await wrapper.tokenURI(3)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/3"
+    );
+
+    expect(await legacy.ownerOf(4)).equal(alice.address);
+    expect(await wrapper.ownerOf(4)).equal(legacy.address);
+    expect(await wrapper.tokenURI(4)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/4"
+    );
+
+    expect(await legacy.ownerOf(5)).equal(bob.address);
+    expect(await wrapper.ownerOf(5)).equal(legacy.address);
+    expect(await wrapper.tokenURI(5)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/5"
+    );
+
+    expect(await legacy.ownerOf(6)).equal(bob.address);
+    expect(await wrapper.ownerOf(6)).equal(legacy.address);
+    expect(await wrapper.tokenURI(6)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/6"
+    );
+
+    expect(await legacy.ownerOf(7)).equal(carol.address);
+    expect(await wrapper.ownerOf(7)).equal(legacy.address);
+    expect(await wrapper.tokenURI(7)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/7"
+    );
+
+    expect(await legacy.ownerOf(8)).equal(carol.address);
+    expect(await wrapper.ownerOf(8)).equal(legacy.address);
+    expect(await wrapper.tokenURI(8)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/8"
+    );
+
+    expect(await legacy.ownerOf(9)).equal(carol.address);
+    expect(await wrapper.ownerOf(9)).equal(legacy.address);
+    expect(await wrapper.tokenURI(9)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/9"
+    );
+
+    expect(await legacy.ownerOf(10)).equal(carol.address);
+    expect(await wrapper.ownerOf(10)).equal(legacy.address);
+    expect(await wrapper.tokenURI(10)).equal(
+      "https://left.gallery/tokens/metadata/family-maker-legacy/10"
+    );
+
     expect(await legacy.ownerOf(11)).equal(wrapper.address);
     expect(await wrapper.ownerOf(11)).equal(alice.address);
     expect(await wrapper.tokenURI(11)).equal(
@@ -149,6 +209,7 @@ describe("Family Maker", () => {
     // Bob transfers a legacy token to Dan
     await bobLegacy.transferFrom(bob.address, dan.address, 5);
     expect(await legacy.ownerOf(5)).equal(dan.address);
+    expect(await wrapper.ownerOf(5)).equal(legacy.address);
 
     // Dan wraps the token
     await danLegacy["safeTransferFrom(address,address,uint256)"](
@@ -159,6 +220,15 @@ describe("Family Maker", () => {
     expect(await legacy.ownerOf(5)).equal(wrapper.address);
     expect(await wrapper.ownerOf(5)).equal(dan.address);
 
+    // Erin cannot transfer the token
+    await expect(
+      erinWrapper["safeTransferFrom(address,address,uint256)"](
+        dan.address,
+        bob.address,
+        5
+      )
+    ).to.revertedWith("");
+
     // Dan approves Erin to transfer the token
     await danWrapper.approve(erin.address, 5);
 
@@ -168,6 +238,7 @@ describe("Family Maker", () => {
       bob.address,
       5
     );
+    expect(await legacy.ownerOf(5)).equal(wrapper.address);
     expect(await wrapper.ownerOf(5)).equal(bob.address);
 
     // Bob unwraps the token
@@ -181,28 +252,31 @@ describe("Family Maker", () => {
       wrapper.address,
       7
     );
+    expect(await legacy.ownerOf(7)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(7)).equal(carol.address);
+
     await carolLegacy["safeTransferFrom(address,address,uint256)"](
       carol.address,
       wrapper.address,
       8
     );
+    expect(await legacy.ownerOf(8)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(8)).equal(carol.address);
+
     await carolLegacy["safeTransferFrom(address,address,uint256)"](
       carol.address,
       wrapper.address,
       9
     );
+    expect(await legacy.ownerOf(9)).equal(wrapper.address);
+    expect(await wrapper.ownerOf(9)).equal(carol.address);
+
     await carolLegacy["safeTransferFrom(address,address,uint256)"](
       carol.address,
       wrapper.address,
       10
     );
-    expect(await wrapper.ownerOf(7)).equal(carol.address);
-    expect(await wrapper.ownerOf(8)).equal(carol.address);
-    expect(await wrapper.ownerOf(9)).equal(carol.address);
     expect(await wrapper.ownerOf(10)).equal(carol.address);
-    expect(await legacy.ownerOf(7)).equal(wrapper.address);
-    expect(await legacy.ownerOf(8)).equal(wrapper.address);
-    expect(await legacy.ownerOf(9)).equal(wrapper.address);
     expect(await legacy.ownerOf(10)).equal(wrapper.address);
   });
 });
