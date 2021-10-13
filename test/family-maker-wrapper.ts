@@ -7,7 +7,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployLegacy } from "./legacy";
 import { Contract } from "@ethersproject/contracts";
 import { AddressZero } from "@ethersproject/constants";
-import { defineReadOnly } from "@ethersproject/properties";
 
 chai.use(solidity);
 chai.use(chaiAsPromised);
@@ -333,5 +332,19 @@ describe("Family Maker Wrapper", () => {
         1
       )
     ).to.be.revertedWith("FMW: Invalid contract");
+  });
+
+  it("transfers ownership of the legacy contract", async () => {
+    expect(await legacy.owner()).equal(wrapper.address);
+    expect(await aliceWrapper.transferOwnershipLegacy(alice.address));
+    expect(await legacy.owner()).equal(alice.address);
+  });
+
+  it("does not transfer ownership of the legacy contract when called by someone else", async () => {
+    expect(await legacy.owner()).equal(wrapper.address);
+    expect(bobWrapper.transferOwnershipLegacy(bob.address)).to.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+    expect(await legacy.owner()).equal(wrapper.address);
   });
 });

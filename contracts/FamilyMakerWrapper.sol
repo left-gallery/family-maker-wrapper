@@ -77,7 +77,8 @@ contract FamilyMakerWrapper is ERC721, Ownable {
     }
 
     /**
-     * @dev Custom {ERC721-_transfer} method that **unwrap** tokens.
+     * @dev Custom {ERC721-_transfer} method that **unwrap** tokens if `to` is
+     * the original *family token*.
      */
     function _transfer(
         address from,
@@ -117,5 +118,9 @@ contract FamilyMakerWrapper is ERC721, Ownable {
                 _mint(to, tokenId);
             }
         }
+    }
+
+    function transferOwnershipLegacy(address newOwner) public onlyOwner {
+        familyMaker.transferOwnership(newOwner);
     }
 }

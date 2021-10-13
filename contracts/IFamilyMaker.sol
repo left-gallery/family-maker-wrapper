@@ -55,4 +55,6 @@ interface IFamilyMaker {
     function totalSupply() external view returns (uint256);
 
     function createWork(address _to, string calldata _uri) external;
+
+    function transferOwnership(address newOwner) external;
 }
