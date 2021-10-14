@@ -15,10 +15,14 @@ import("./tasks").catch((e) => console.log("Cannot load tasks", e.toString()));
 // TODO: reenable solidity-coverage when it works
 // import "solidity-coverage";
 
+// Well known private key
+const SCOOP_ME =
+  "0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3";
+
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
-const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY!;
-const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY!;
-const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY!;
+const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || SCOOP_ME;
+const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || SCOOP_ME;
+const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || SCOOP_ME;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const COINMARKETCAP_KEY = process.env.COINMARKETCAP_KEY || "";
 
